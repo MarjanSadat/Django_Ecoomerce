@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from .models import Product
+from .models import Product, Category
 from django.views.generic import ListView
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
@@ -8,6 +8,13 @@ from django.contrib import messages
 class ProductListView(ListView):
     model = Product
     template_name = 'index.html'
+
+def category_summary(request):
+    all_cat = Category.objects.all()
+    context = {
+        'cats':all_cat,
+    }    
+    return render(request,'category_summary.html', context)
 
 
 def products_view(request):
@@ -41,3 +48,26 @@ def logout_user(request):
     logout(request)
     messages.success(request, ('You Logged out successfully!'))
     return redirect('shop:products_view')
+
+def product(request, pk):
+    product = Product.objects.get(pk=pk)
+    context = {
+        'product' : product
+    }
+    print('**'*10)
+    return render(request, 'product.html', context)
+
+def category(request, cat):
+    # cat = cat.replace('-',' ')
+    try:
+        category = Category.objects.get(name=cat)
+        products = Product.objects.filter(category=category)
+        context = {
+            'products' : products,
+            'category' : category,
+        }
+        return render(request, 'category.html', context)
+
+    except:        
+        messages.success(request, ('This Category is Empty!'))
+        return redirect('shop:products_view')
